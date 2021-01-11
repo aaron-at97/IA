@@ -1,7 +1,7 @@
 from math import sqrt
 from Clustering import dendrogram
 
-Holaaaaaaa
+
 # Llegir el fitxer i retornar els noms dels blogs, els noms de les features i els numeros que apareixen
 def readfile(filename):
     lines = [line for line in open(filename, "r")]
