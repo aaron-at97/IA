@@ -83,6 +83,7 @@ def divideset(part, column, value):
             set2.append(row)
 
     return set1, set2
+
 # ---- t9 ----
 def buildtree(part, scoref=entropy, beta=0):
     if len(part) == 0: return decisionode()
@@ -195,7 +196,7 @@ class decisionode:
         self.fb = fb
 
 if __name__ == "__main__":
- prototypes = read_file("../decision_tree_example.txt", data_sep=",", ignore_first_line=True)
+ prototypes = read_file("decision_tree_example.txt", data_sep=",", ignore_first_line=True)
 
  set1, set2 = divideset(prototypes, column=3, value=20)
  tree = buildtree(set1)
