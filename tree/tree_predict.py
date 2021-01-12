@@ -182,6 +182,20 @@ def classify(obj, tree):
                 branch = tree.fb
         return classify(obj, branch)
 
+
+def printtree(tree, indent=''):
+    # Is this a leaf node?
+    if tree.results is not None:
+        print(indent+str(tree.results))
+    else:
+        # Print the criteria
+        print(indent + str(tree.col)+':'+str(tree.value)+'? ')
+        # Print the branches
+        print(indent+'T->')
+        printtree(tree.tb, indent+'  ')
+        print(indent+'F->')
+        printtree(tree.fb, indent+'  ')
+
 # ----- t8 -----
 
 class decisionode:
@@ -199,10 +213,30 @@ if __name__ == "__main__":
  prototypes = read_file("decision_tree_example.txt", data_sep=",", ignore_first_line=True)
 
  set1, set2 = divideset(prototypes, column=3, value=20)
- tree = buildtree(set1)
+ tree = buildtree(prototypes, scoref=entropy, beta=0)
 
+ print("\n Prototipes")
+ print("------------------ ")
+ print(prototypes)
+ # Get a dictionary with key: class_name, value: total
+ unique_counts(prototypes)
+
+
+ # Get Gini impurity
+ print("\n Gini Impurity")
+ print("------------------ ")
+ gini = gini_impurity(prototypes)
+ print(gini)
+ # Get entropy
+ entr = entropy(prototypes)
+ # print(entr)
+ print ("\n Build Tree")
+ print("------------------ ")
+ printtree(tree)
+
+ print("\n Divide sets ")
+ print("------------------ ")
  print (set1)
- print ("")
+ print ("Set 2")
  print (set2)
-
 
