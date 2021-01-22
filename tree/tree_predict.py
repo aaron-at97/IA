@@ -1,7 +1,6 @@
 import printtree
 
 # ---- t3 ----
-
 def read_file(file_path, data_sep=",", ignore_first_line=False):
     prototypes = []
     # Open file
@@ -35,7 +34,6 @@ def filter_token(token):
             return token
 
 # ----- t4 -----
-
 def unique_counts(part):
     #import collections
     #return dict(collections.Counter(row[-1] for row in part))
@@ -45,7 +43,6 @@ def unique_counts(part):
     return results
 
 # ----- t5 -----
-
 def gini_impurity(part):
     total = float(len(part))
     results = unique_counts(part)
@@ -53,7 +50,6 @@ def gini_impurity(part):
     return 1 - sum((count / total) ** 2 for count in results.values())
 
 # ----- t6 -----
-
 def entropy(part):
     from math import log
     log2 = lambda x: log(x) / log(2)
@@ -65,7 +61,6 @@ def entropy(part):
     )
 
 # ----- t7 -----
-
 def divideset(part, column, value):
     split_function = None
 
@@ -138,9 +133,9 @@ def buildtree_ite(part, scoref=entropy, beta=0):
             criterials = []
 
             for row in part:
-
                 if row[col] not in criterials:
                     criterials.append(row[col])
+
             for value in criterials:
                 # Set 1 True y Set 2 False.
                 (set1, set2) = divideset(prototypes, col, value)
@@ -168,23 +163,21 @@ def buildtree_ite(part, scoref=entropy, beta=0):
 
 # ---- t12 ----
 def classify(obj, tree):
+    branch = None
     if tree.results != None:
         return tree.results
     else:
-        v = obj[tree.col]
-        branch = None
-        if isinstance(v, int) or isinstance(v, float):
-            if v >= tree.value:
+        if isinstance(obj[tree.col], int) or isinstance(obj[tree.col], float):
+            if obj[tree.col] >= tree.value:
                 branch = tree.tb
             else:
                 branch = tree.fb
         else:
-            if v == tree.value:
+            if obj[tree.col] == tree.value:
                 branch = tree.tb
             else:
                 branch = tree.fb
         return classify(obj, branch)
-
 
 def printtree(tree, indent=''):
     # Is this a leaf node?
@@ -200,7 +193,6 @@ def printtree(tree, indent=''):
         printtree(tree.fb, indent+'  ')
 
 # ----- t8 -----
-
 class decisionode:
 
     def __init__(
