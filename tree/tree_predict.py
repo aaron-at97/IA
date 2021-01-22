@@ -1,6 +1,6 @@
+import printtree
 
 # ---- t3 ----
-
 def read_file(file_path, data_sep=",", ignore_first_line=False):
     prototypes = []
     # Open file
@@ -34,7 +34,6 @@ def filter_token(token):
             return token
 
 # ----- t4 -----
-
 def unique_counts(part):
     #import collections
     #return dict(collections.Counter(row[-1] for row in part))
@@ -44,7 +43,6 @@ def unique_counts(part):
     return results
 
 # ----- t5 -----
-
 def gini_impurity(part):
     total = float(len(part))
     results = unique_counts(part)
@@ -52,7 +50,6 @@ def gini_impurity(part):
     return 1 - sum((count / total) ** 2 for count in results.values())
 
 # ----- t6 -----
-
 def entropy(part):
     from math import log
     log2 = lambda x: log(x) / log(2)
@@ -64,7 +61,6 @@ def entropy(part):
     )
 
 # ----- t7 -----
-
 def divideset(part, column, value):
     split_function = None
 
@@ -89,7 +85,7 @@ def buildtree(part, scoref=entropy, beta=0):
     current_score = scoref(part)
 
     # Set up some variables to track the best criteria
-    best_gain = 0.0
+    best_gain = 0
     best_criteria = None
     best_sets = None
 
@@ -104,17 +100,17 @@ def buildtree(part, scoref=entropy, beta=0):
         # in this column
         for value in column_values.keys():
             (set1, set2) = divideset(part, col, value)
-            # Information gain
             gain = current_score - (len(set1) / len(part)) * scoref(set1) - (len(set2) / len(part)) * scoref(set2)
+
             if gain > best_gain and len(set1) > 0 and len(set2) > 0:
                 best_gain = gain
                 best_criteria = (col, value)
                 best_sets = (set1, set2)
     # Create the sub branches
     if best_gain > beta:
-        trueBranch = buildtree(best_sets[0])
-        falseBranch = buildtree(best_sets[1])
-        return decisionode(col=best_criteria[0], value=best_criteria[1], tb=trueBranch, fb=falseBranch)
+        leftBranch = buildtree(best_sets[0])
+        rightBranch = buildtree(best_sets[1])
+        return decisionode(col=best_criteria[0], value=best_criteria[1], tb=leftBranch, fb=rightBranch)
     else:
         return decisionode(results=unique_counts(part))
 
@@ -123,9 +119,9 @@ def buildtree_ite(part, scoref=entropy, beta=0):
     dnode = decisionode()
     stack = [[part, dnode]]
 
-    while len(stack) > 0:
-        prototip, parent = stack.pop()
-        current_score = scoref(prototip)
+    while 0 < len(stack):
+        prototypes, parent = stack.pop()
+        current_score = scoref(prototypes)
 
         best_gain = 0
         best_criteria = None
@@ -135,49 +131,53 @@ def buildtree_ite(part, scoref=entropy, beta=0):
         col_cont = len(part[0]) - 1
         for col in range(0, col_cont):
             criterials = []
+
             for row in part:
                 if row[col] not in criterials:
                     criterials.append(row[col])
+
             for value in criterials:
-                (set1, set2) = divideset(prototip, col, value)
-                gain = current_score - (len(set1) / len(prototip)) * scoref(set1) - (len(set2) / len(prototip)) * scoref(set2)
-                if gain > best_gain  and len(set1) > 0 and len(set2) > 0:
+                # Set 1 True y Set 2 False.
+                (set1, set2) = divideset(prototypes, col, value)
+                gain = current_score - (len(set1) / len(prototypes)) * scoref(set1) - (len(set2) / len(prototypes)) * scoref(set2)
+
+                if gain > best_gain and len(set1) > 0 and len(set2) > 0:
                     best_gain = gain
                     best_criteria = value
                     best_sets = (set1, set2)
                     best_col = col
 
         if best_gain > beta:
+
             parent.tb = decisionode()
             parent.fb = decisionode()
             parent.value = best_criteria
             parent.col = best_col
-
             stack.append([best_sets[0], parent.tb])
             stack.append([best_sets[1], parent.fb])
+
         else:
-            parent.results = unique_counts(prototip)
+            parent.results = unique_counts(prototypes)
+
     return dnode
 
 # ---- t12 ----
 def classify(obj, tree):
+    branch = None
     if tree.results != None:
         return tree.results
     else:
-        v = obj[tree.col]
-        branch = None
-        if isinstance(v, int) or isinstance(v, float):
-            if v >= tree.value:
+        if isinstance(obj[tree.col], int) or isinstance(obj[tree.col], float):
+            if obj[tree.col] >= tree.value:
                 branch = tree.tb
             else:
                 branch = tree.fb
         else:
-            if v == tree.value:
+            if obj[tree.col] == tree.value:
                 branch = tree.tb
             else:
                 branch = tree.fb
         return classify(obj, branch)
-
 
 def printtree(tree, indent=''):
     # Is this a leaf node?
@@ -193,7 +193,6 @@ def printtree(tree, indent=''):
         printtree(tree.fb, indent+'  ')
 
 # ----- t8 -----
-
 class decisionode:
 
     def __init__(
@@ -206,14 +205,22 @@ class decisionode:
         self.fb = fb
 
 if __name__ == "__main__":
- prototypes = read_file("decision_tree_example.txt", data_sep=",", ignore_first_line=True)
 
+ prototypes = read_file("decision_tree_example.txt", data_sep=",", ignore_first_line=True)
  set1, set2 = divideset(prototypes, column=3, value=20)
  tree = buildtree(prototypes, scoref=entropy, beta=0)
+
 
  print("\n Prototipes")
  print("------------------ ")
  print(prototypes)
+
+ print("\n Divide sets ")
+ print("------------------ ")
+ print ("Set 1")
+ print (set1)
+ print ("Set 2")
+ print (set2)
 
  # Get a dictionary with key: class_name, value: total
  unique_counts(prototypes)
@@ -240,11 +247,4 @@ if __name__ == "__main__":
  print("------------------ ")
  printtree(tree1)
 
-
- print("\n Divide sets ")
- print("------------------ ")
- print ("Set 1")
- print (set1)
- print ("Set 2")
- print (set2)
 
