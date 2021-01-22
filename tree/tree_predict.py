@@ -1,5 +1,3 @@
-import printtree
-
 # ---- t3 ----
 def read_file(file_path, data_sep=",", ignore_first_line=False):
     prototypes = []
