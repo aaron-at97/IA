@@ -104,6 +104,7 @@ def buildtree(part, scoref=entropy, beta=0):
                 best_gain = gain
                 best_criteria = (col, value)
                 best_sets = (set1, set2)
+
     # Create the sub branches
     if best_gain > beta:
         leftBranch = buildtree(best_sets[0])

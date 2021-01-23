@@ -1,5 +1,6 @@
+from sklearn.datasets import load_iris
 import random
-
+import pandas as pd
 
 def euclidean_squared(p1, p2):
     return sum(
@@ -15,6 +16,7 @@ class Kmeans:
         self.use_range = use_range
         self.max_iters = max_iters
         self.centroids = []
+        self.inertia_ = 0
 
     # Crear un centroide random
     def _get_range_random_value(self, points, feature_idx):
@@ -47,7 +49,7 @@ class Kmeans:
                 closest_centroid_idx = centroid_idx
                 min_dist = dist
 
-        return closest_centroid_idx
+        return closest_centroid_idx, round(min_dist,2)
 
     # Retornar el punt mitjana de points_in_cl, que es els punts que hi ha a un cluster
     def _average_points(self, points_in_cl):
@@ -68,59 +70,111 @@ class Kmeans:
             self.centroids[cluster_idx] = avrg  # El nou centroide del cluster es la mitjana de tots els punts
 
     def fit(self, rows):
+
         if self.use_range:
             self._create_random_centroids(rows)  # Crear centroides random el primer cop
         else:
             self._create_points_centroids(rows)
 
         lastmatches = None  # Assignacions anteriors
-
+        distance = 0.0
         for iteration in range(self.max_iters):  # Limit d'iteracions per evitar bucle infinit
             bestmatches = [[] for _ in range(self.k)]  # Matches buits al principi
 
             for row_idx, row in enumerate(rows):  # Per tots els punts
-                centroid = self._find_closest_centroid(row)  # Trobem el centroide mes proper i l'afegim
+                centroid, dist = self._find_closest_centroid(row)  # Trobem el centroide mes proper i l'afegim
                 bestmatches[centroid].append(row_idx)
+                distance+=dist
 
             # Si anteriors i actuals son iguals hem acabat
             if bestmatches == lastmatches:
                 break
-
             lastmatches = bestmatches
 
             # Actualitzar els centroides dels clusters segons les noves assignacions
             self._update_centroids(bestmatches, rows)
-        return bestmatches
+
+
+        self.inertia = distance
+
+        return bestmatches, distance
+
 
     # Passat una llista de punts retornar de quin cluster serien
     def predict(self, rows):
         predictions = list(map(self._find_closest_centroid, rows))
         return predictions
 
+def read_file(file_path, data_sep=","):
+    prototypes = []
+    # Open file
+    with open(file_path, "r") as fh:
+        # Strip lines
+        strip_reader = (line.strip() for line in fh)
 
-points = [
-    [1, 1],
-    [2, 1],
-    [4, 3],
-    [5, 4]
-]
+        # Filter empty lines
+        filtered_reader = (line for line in strip_reader if line)
 
-points2 = [
-    [2, 4],
-    [3, 5],
-    [3, 2],
-    [5, 2],
-    [5, 4],
-    [7, 3],
-    [7, 8],
-    [8, 4],
-]
+        # Split line, parse token and append to prototypes
+        for line in filtered_reader:
+            prototypes.append(
+                [filter_token(token) for token in line.split(data_sep)]
+            )
 
-centroids = [
-    [1, 1],
-    [2, 1]
-]
+    return prototypes
 
-kmeans = Kmeans(k=2, distance=euclidean_squared, max_iters=5)
-bestmatches = kmeans.fit(points2)
-print(bestmatches)
+
+def filter_token(token):
+    try:
+        return int(token)
+    except ValueError:
+        try:
+            return float(token)
+        except ValueError:
+            return token
+
+
+if __name__ == "__main__":
+
+    points = [
+        [1, 1],
+        [2, 1],
+        [4, 3],
+        [5, 4]
+    ]
+
+    points2 = [
+        [2, 4],
+        [3, 5],
+        [3, 2],
+        [5, 2],
+        [5, 4],
+        [7, 3],
+        [7, 8],
+        [8, 4],
+    ]
+
+    centroids = [
+        [1, 1],
+        [2, 1]
+    ]
+
+    data = read_file("seeds.csv", data_sep=",")
+    kmeans = Kmeans(k=2, distance=euclidean_squared, max_iters=5)
+    bestmatches, dist = kmeans.fit(data)
+    print(bestmatches)
+    print(dist)
+
+
+    distancia= [[] for _ in range(5)]
+    for cont in range(5):
+        kmeans = Kmeans(k=cont + 1, max_iters=5, distance=euclidean_squared)
+        data = read_file("seeds.csv", data_sep=",")
+        bestmatches, dist = kmeans.fit(data)
+        print ("\n Con K =",cont+1,":\n----------------- \n",
+               bestmatches," \n",
+               kmeans.predict(data), "\n --------------- ")
+        distancia[cont]=(kmeans.predict(data));
+
+    df = pd.DataFrame(distancia)
+    print(df)
