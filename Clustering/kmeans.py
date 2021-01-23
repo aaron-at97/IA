@@ -167,6 +167,7 @@ if __name__ == "__main__":
 
 
     distancia= [[] for _ in range(5)]
+    df = pd.DataFrame(columns=['Distancia Total ','Distancia por cada row'])
     for cont in range(5):
         kmeans = Kmeans(k=cont + 1, max_iters=5, distance=euclidean_squared)
         data = read_file("seeds.csv", data_sep=",")
@@ -174,7 +175,5 @@ if __name__ == "__main__":
         print ("\n Con K =",cont+1,":\n----------------- \n",
                bestmatches," \n",
                kmeans.predict(data), "\n --------------- ")
-        distancia[cont]=(kmeans.predict(data));
-
-    df = pd.DataFrame(distancia)
+        df.loc[cont] = [dist,kmeans.predict(data)]
     print(df)
