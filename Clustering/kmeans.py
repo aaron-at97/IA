@@ -87,7 +87,7 @@ class Kmeans:
                 bestmatches = [[] for _ in range(self.k)]  # Matches buits al principi
 
                 for row_idx, row in enumerate(rows):  # Per tots els punts
-                    centroid = self._find_closest_centroid(row)  # Trobem el centroide mes proper i l'afegim
+                    centroid, dist = self._find_closest_centroid(row)  # Trobem el centroide mes proper i l'afegim
                     bestmatches[centroid].append(row_idx)
                 # Si anteriors i actuals son iguals hem acabat
                 if bestmatches == lastmatches:
@@ -110,6 +110,7 @@ class Kmeans:
 
         if mejorDistancia == -10:
             mejorDistancia = distance
+            totalbestmatches = bestmatches
 
         self.inertia = mejorDistancia
 
@@ -196,9 +197,9 @@ if __name__ == "__main__":
     for cont in range(9):
         kmeans = Kmeans(k=cont + 1, distance=euclidean_squared, max_iters=5)
         bestmatches, dist = kmeans.fit(fitx)
-        if cont<3: #pequeño ejemplo de las 3 primeras K
+        if cont<3:
             print ("\n Con K =", cont+1, ":\n----------------- \n", bestmatches, " \n",
                    kmeans.predict(fitx), "\n --------------- ")
 
-        df.loc[cont] = [dist, kmeans.predict(fitx)] #añadimos la distancia total a la tabla de pandas
+        df.loc[cont] = [dist, kmeans.predict(fitx)]
     print(df)
