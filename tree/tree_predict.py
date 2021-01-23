@@ -163,20 +163,21 @@ def buildtree_ite(part, scoref=entropy, beta=0):
 
 # ---- t12 ----
 def classify(obj, tree):
+
     if tree.results != None:
         return tree.results
     else:
         if isinstance(obj[tree.col], int) or isinstance(obj[tree.col], float):
             if obj[tree.col] >= tree.value:
-                branch = tree.tb
+                hoja = tree.tb
             else:
-                branch = tree.fb
+                hoja = tree.fb
         else:
             if obj[tree.col] == tree.value:
-                branch = tree.tb
+                hoja = tree.tb
             else:
-                branch = tree.fb
-        return classify(obj, branch)
+                hoja = tree.fb
+        return classify(obj, hoja)
 
 def printtree(tree, indent=''):
     # Is this a leaf node?
