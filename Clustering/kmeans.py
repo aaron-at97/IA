@@ -48,7 +48,6 @@ class Kmeans:
             if dist < min_dist:
                 closest_centroid_idx = centroid_idx
                 min_dist = dist
-
         return closest_centroid_idx, round(min_dist,2)
 
     # Retornar el punt mitjana de points_in_cl, que es els punts que hi ha a un cluster
@@ -84,8 +83,6 @@ class Kmeans:
             for row_idx, row in enumerate(rows):  # Per tots els punts
                 centroid, dist = self._find_closest_centroid(row)  # Trobem el centroide mes proper i l'afegim
                 bestmatches[centroid].append(row_idx)
-                distance+=dist
-
             # Si anteriors i actuals son iguals hem acabat
             if bestmatches == lastmatches:
                 break
@@ -94,7 +91,9 @@ class Kmeans:
             # Actualitzar els centroides dels clusters segons les noves assignacions
             self._update_centroids(bestmatches, rows)
 
-
+        for row_idx, row in enumerate(rows):  # Per tots els punts
+            centroid, dist = self._find_closest_centroid(row)  # Trobem el centroide mes proper retornamos la distancia y la sumamos por cada row
+            distance += dist
         self.inertia = distance
 
         return bestmatches, distance
@@ -161,16 +160,15 @@ if __name__ == "__main__":
 
     data = read_file("seeds.csv", data_sep=",")
     kmeans = Kmeans(k=2, distance=euclidean_squared, max_iters=5)
-    bestmatches, dist = kmeans.fit(data)
+    bestmatches, dist = kmeans.fit(points2)
     print(bestmatches)
+    print(kmeans.predict(points2))
     print(dist)
 
-
-    distancia= [[] for _ in range(5)]
+    distancia= [[] for _ in range(9)]
     df = pd.DataFrame(columns=['Distancia Total ','Distancia por cada row'])
-    for cont in range(5):
+    for cont in range(9):
         kmeans = Kmeans(k=cont + 1, max_iters=5, distance=euclidean_squared)
-        data = read_file("seeds.csv", data_sep=",")
         bestmatches, dist = kmeans.fit(data)
         print ("\n Con K =",cont+1,":\n----------------- \n",
                bestmatches," \n",
