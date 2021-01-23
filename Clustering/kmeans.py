@@ -168,10 +168,11 @@ if __name__ == "__main__":
     distancia= [[] for _ in range(9)]
     df = pd.DataFrame(columns=['Distancia Total ','Distancia por cada row'])
     for cont in range(9):
-        kmeans = Kmeans(k=cont + 1, max_iters=5, distance=euclidean_squared)
+        kmeans = Kmeans(k=cont + 1,distance=euclidean_squared, max_iters=10)
         bestmatches, dist = kmeans.fit(data)
-        print ("\n Con K =",cont+1,":\n----------------- \n",
-               bestmatches," \n",
-               kmeans.predict(data), "\n --------------- ")
+        if cont<4:
+            print ("\n Con K =",cont+1,":\n----------------- \n",
+                   bestmatches," \n",
+                   kmeans.predict(data), "\n --------------- ")
         df.loc[cont] = [dist,kmeans.predict(data)]
     print(df)
