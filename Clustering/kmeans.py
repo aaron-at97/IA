@@ -11,8 +11,8 @@ def euclidean_squared(p1, p2):
 
 class Kmeans:
     def __init__(self, k, distance, max_iters, use_range=True):
-        self.k = k  # Número de clusters
-        self.distance = distance  # Funció de distància que farem servir
+        self.k = k
+        self.distance = distance
         self.use_range = use_range
         self.max_iters = max_iters
         self.centroids = []
@@ -20,7 +20,7 @@ class Kmeans:
 
     # Crear un centroide random
     def _get_range_random_value(self, points, feature_idx):
-        feat_values = [point[feature_idx] for point in points]  # Valors de la feature
+        feat_values = [point[feature_idx] for point in points]
         feat_max = max(feat_values)
         feat_min = min(feat_values)
         return random.random() * (feat_max - feat_min) + feat_min
@@ -28,45 +28,42 @@ class Kmeans:
     # Crear centroides random
     def _create_random_centroids(self, rows):
         n_feats = len(points[0])
-        for cluster_idx in range(self.k):  # Per el número de clusters que volem
+        for cluster_idx in range(self.k):
             point = [0.0] * n_feats
-            for feature_idx in range(n_feats):  # Crear un centroid passant per tots els features
+            for feature_idx in range(n_feats):
                 point[feature_idx] = self._get_range_random_value(points, feature_idx)
             self.centroids.append(point)
 
     def _create_points_centroids(self, points):
         raise NotImplementedError
 
-    # Row es una llista que representa un punt
-    # Busquem els centroide més proper al punt i retorna el id
+
     def _find_closest_centroid(self, row):
         min_dist = 2 ** 64
         closest_centroid_idx = None
 
-        for centroid_idx, centroid in enumerate(self.centroids):  # self.centroids es una llista amb els centroides
-            dist = self.distance(row, centroid)  # Distància del punt al centroide segons la funció que hem passat
+        for centroid_idx, centroid in enumerate(self.centroids):
+            dist = self.distance(row, centroid)
             if dist < min_dist:
                 closest_centroid_idx = centroid_idx
                 min_dist = dist
         return closest_centroid_idx, min_dist
 
-    # Retornar el punt mitjana de points_in_cl, que es els punts que hi ha a un cluster
+
     def _average_points(self, points_in_cl):
         avgs = []
         for i in range(len(points_in_cl[0])):
             avgs.append(sum([p[i] for p in points_in_cl]) / float(len(points)))
         return avgs
 
-    # matches es una llista on per cada cluster hi ha els ids dels punts que li toquen
-    # rows es la llista amb tots els punts
-    # Actualitzar els centroides dels clusters
+
     def _update_centroids(self, matches, rows):
-        for cluster_idx in range(len(matches)):  # Per cada cluster
-            points_2 = [rows[i] for i in matches[cluster_idx]]  # Agafo els punts enlloc dels ids
-            if not points_2:  # Si no hi ha punts no hi ha centre
+        for cluster_idx in range(len(matches)):
+            points_2 = [rows[i] for i in matches[cluster_idx]]
+            if not points_2:
                 continue
             avrg = self._average_points(points_2)
-            self.centroids[cluster_idx] = avrg  # El nou centroide del cluster es la mitjana de tots els punts
+            self.centroids[cluster_idx] = avrg
 
     def fit(self, rows):
 
@@ -76,30 +73,30 @@ class Kmeans:
         for i in range(25):
             self.centroids = []
             if self.use_range:
-                self._create_random_centroids(rows)  # Crear centroides random el primer cop
+                self._create_random_centroids(rows)
             else:
                 self._create_points_centroids(rows)
 
-            lastmatches = None  # Assignacions anteriors
+            lastmatches = None
             distance = 0.0
 
-            for iteration in range(self.max_iters):  # Limit d'iteracions per evitar bucle infinit
-                bestmatches = [[] for _ in range(self.k)]  # Matches buits al principi
+            for iteration in range(self.max_iters):
+                bestmatches = [[] for _ in range(self.k)]
 
-                for row_idx, row in enumerate(rows):  # Per tots els punts
-                    centroid, dist = self._find_closest_centroid(row)  # Trobem el centroide mes proper i l'afegim
+                for row_idx, row in enumerate(rows):
+                    centroid, dist = self._find_closest_centroid(row)
                     bestmatches[centroid].append(row_idx)
-                # Si anteriors i actuals son iguals hem acabat
+
                 if bestmatches == lastmatches:
                     break
                 lastmatches = bestmatches
 
-                # Actualitzamos los centroides
+
                 self._update_centroids(bestmatches, rows)
 
 
-            for row_idx, row in enumerate(rows):  # Per tots els punts
-                centroid, dist = self._find_closest_centroid(row)  # encontramos  el centroide mas proper proximo la distancia y la sumamos por cada row
+            for row_idx, row in enumerate(rows):
+                centroid, dist = self._find_closest_centroid(row)
                 distance += dist
 
             if distance > lastdistance:
@@ -117,14 +114,11 @@ class Kmeans:
         return totalbestmatches, mejorDistancia
 
 
-    # Passat una llista de punts retornar de quin cluster serien
     def predict(self, rows):
         predictions = list(map(self._find_closest_centroid, rows))
         return predictions
 
-
-
-def read_file(file_path, data_sep=","):
+def read_file(file_path, data_sep=",", ignore_first_line=False):
     prototypes = []
     # Open file
     with open(file_path, "r") as fh:
@@ -134,13 +128,16 @@ def read_file(file_path, data_sep=","):
         # Filter empty lines
         filtered_reader = (line for line in strip_reader if line)
 
+        # Skip first line if needed
+        if ignore_first_line:
+            next(filtered_reader)
+
         # Split line, parse token and append to prototypes
         for line in filtered_reader:
-            prototypes.append(
-                [filter_token(token) for token in line.split(data_sep)]
-            )
+            prototypes.append([filter_token(token) for token in line.split(data_sep)])
 
     return prototypes
+
 
 
 def filter_token(token):
@@ -151,6 +148,7 @@ def filter_token(token):
             return float(token)
         except ValueError:
             return token
+
 
 
 if __name__ == "__main__":
@@ -178,7 +176,7 @@ if __name__ == "__main__":
         [2, 1]
     ]
 
-    fitx = read_file("seeds.csv", data_sep=",")
+
     kmeans = Kmeans(k=2, distance=euclidean_squared, max_iters=5)
     bestmatches, dist = kmeans.fit(points2)
     print(bestmatches)
@@ -192,14 +190,15 @@ if __name__ == "__main__":
     print(dist)
 
     print("\n Fichero Ceeds:")
-    distancia= [[] for _ in range(9)]
+    distancia = [[] for _ in range(8)]
     df = pd.DataFrame(columns=['Distancia Total ', 'Distancia por cada row'])
-    for cont in range(9):
+    for cont in range(8):
         kmeans = Kmeans(k=cont + 1, distance=euclidean_squared, max_iters=5)
-        bestmatches, dist = kmeans.fit(fitx)
-        if cont<3:
-            print ("\n Con K =", cont+1, ":\n----------------- \n", bestmatches, " \n",
-                   kmeans.predict(fitx), "\n --------------- ")
+        fitx = read_file(file_path="seeds.csv", data_sep=",")
+        bestmatches, dist = kmeans.fit(rows=fitx)
+        if cont < 3:
+            print("\n Con K =", cont + 1, ":\n----------------- \n",
+                  kmeans.predict(fitx), "\n --------------- ")
 
         df.loc[cont] = [dist, kmeans.predict(fitx)]
     print(df)
